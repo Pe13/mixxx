@@ -160,7 +160,7 @@ SkinPointer SkinLoader::getConfiguredSkin() const {
 
 QString SkinLoader::getDefaultSkinName() const {
 #ifdef Q_OS_IOS
-    return "LateNightMini";
+    return "LateNight Mini";
 #else
     return "LateNight";
 #endif
