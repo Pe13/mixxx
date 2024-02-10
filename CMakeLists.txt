@@ -3789,7 +3789,6 @@ set(
   Gui
   Network
   OpenGL
-  PrintSupport
   Qml # for QJSEngine
   Sql
   Svg
@@ -3809,6 +3808,9 @@ if(QT6)
     set(QT_NO_PRIVATE_MODULE_WARNING ON)
   endif()
 else()
+  if(NOT IOS)
+    list(APPEND QT_EXTRA_COMPONENTS "PrintSupport")
+  endif()
   find_package(QT 5.12 NAMES Qt5 COMPONENTS Core REQUIRED)
 endif()
 if(QML)
