@@ -4627,34 +4627,47 @@ find_package(LibUSB)
 # USB HID controller support
 option(HID "USB HID controller support" ON)
 if(HID)
-  # hidapi 0.14.0 is the first release, that contains bus type information
-  find_package(hidapi 0.14.0)
-  if(NOT hidapi_FOUND)
-    message(FATAL_ERROR "hidapi >= 0.14.0 not found!")
-  else()
-    # hidapi has two backends on Linux, one using the kernel's hidraw API and one using libusb.
-    # libusb obviously does not support Bluetooth HID devices, so use the hidraw backend. The
-    # libusb backend is the default, so hidraw needs to be selected explicitly at link time.
-    if(CMAKE_SYSTEM_NAME STREQUAL Linux)
-      target_link_libraries(mixxx-lib PRIVATE hidapi::hidraw)
-    else()
-      target_link_libraries(mixxx-lib PRIVATE hidapi::hidapi)
+  if(CMAKE_GENERATOR STREQUAL "Xcode") # if we are building for iOS (jb)
+    # Check that variables exist
+    if(NOT HIDAPI_INCLUDE_PATH)
+      message(FATAL_ERROR "HIDAPI_INCLUDE_PATH not set")
     endif()
-  endif()
-  target_sources(
-    mixxx-lib
-    PRIVATE
-      src/controllers/hid/hidcontroller.cpp
-      src/controllers/hid/hidiothread.cpp
-      src/controllers/hid/hidioglobaloutputreportfifo.cpp
-      src/controllers/hid/hidiooutputreport.cpp
-      src/controllers/hid/hiddevice.cpp
-      src/controllers/hid/hidenumerator.cpp
-      src/controllers/hid/hidusagetables.cpp
-      src/controllers/hid/legacyhidcontrollermapping.cpp
-      src/controllers/hid/legacyhidcontrollermappingfilehandler.cpp
-  )
-  target_compile_definitions(mixxx-lib PUBLIC __HID__)
+    if(NOT HIDAPI_LIB_PATH)
+      message(FATAL_ERROR "HIDAPI_LIB_PATH not set")
+    endif()
+    # Include the headers and link the lib
+    target_include_directories(mixxx-lib PRIVATE HIDAPI_INCLUDE_PATH)
+    target_link_libraries(mixxx-lib PRIVATE HIDAPI_LIB_PATH)
+  else ()
+    # hidapi 0.14.0 is the first release, that contains bus type information
+    find_package(hidapi 0.14.0)
+    if(NOT hidapi_FOUND)
+      message(FATAL_ERROR "hidapi >= 0.14.0 not found!")
+    else()
+      # hidapi has two backends on Linux, one using the kernel's hidraw API and one using libusb.
+      # libusb obviously does not support Bluetooth HID devices, so use the hidraw backend. The
+      # libusb backend is the default, so hidraw needs to be selected explicitly at link time.
+      if(CMAKE_SYSTEM_NAME STREQUAL Linux)
+        target_link_libraries(mixxx-lib PRIVATE hidapi::hidraw)
+      else()
+        target_link_libraries(mixxx-lib PRIVATE hidapi::hidapi)
+      endif()
+    endif()
+    target_sources(
+      mixxx-lib
+      PRIVATE
+        src/controllers/hid/hidcontroller.cpp
+        src/controllers/hid/hidiothread.cpp
+        src/controllers/hid/hidioglobaloutputreportfifo.cpp
+        src/controllers/hid/hidiooutputreport.cpp
+        src/controllers/hid/hiddevice.cpp
+        src/controllers/hid/hidenumerator.cpp
+        src/controllers/hid/hidusagetables.cpp
+        src/controllers/hid/legacyhidcontrollermapping.cpp
+        src/controllers/hid/legacyhidcontrollermappingfilehandler.cpp
+    )
+    target_compile_definitions(mixxx-lib PUBLIC __HID__)
+  endif ()
 endif()
 
 # USB Bulk controller support
