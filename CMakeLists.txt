@@ -5246,6 +5246,9 @@ find_package(LibUSB)
 # USB HID controller support
 option(HID "USB HID controller support" ON)
 if(HID)
+  if(IOS)
+    message(WARNING "HID devices support is only available for jailbroken/trollstore iPhones/iPads")
+  endif()
   # hidapi 0.14.0 is the first release, that contains bus type information
   find_package(hidapi 0.14.0)
   if(NOT hidapi_FOUND)
