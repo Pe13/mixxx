@@ -4643,31 +4643,30 @@ if(HID)
     find_package(hidapi 0.14.0)
     if(NOT hidapi_FOUND)
       message(FATAL_ERROR "hidapi >= 0.14.0 not found!")
-    else()
-      # hidapi has two backends on Linux, one using the kernel's hidraw API and one using libusb.
-      # libusb obviously does not support Bluetooth HID devices, so use the hidraw backend. The
-      # libusb backend is the default, so hidraw needs to be selected explicitly at link time.
-      if(CMAKE_SYSTEM_NAME STREQUAL Linux)
-        target_link_libraries(mixxx-lib PRIVATE hidapi::hidraw)
-      else()
-        target_link_libraries(mixxx-lib PRIVATE hidapi::hidapi)
-      endif()
     endif()
-    target_sources(
-      mixxx-lib
-      PRIVATE
-        src/controllers/hid/hidcontroller.cpp
-        src/controllers/hid/hidiothread.cpp
-        src/controllers/hid/hidioglobaloutputreportfifo.cpp
-        src/controllers/hid/hidiooutputreport.cpp
-        src/controllers/hid/hiddevice.cpp
-        src/controllers/hid/hidenumerator.cpp
-        src/controllers/hid/hidusagetables.cpp
-        src/controllers/hid/legacyhidcontrollermapping.cpp
-        src/controllers/hid/legacyhidcontrollermappingfilehandler.cpp
-    )
-    target_compile_definitions(mixxx-lib PUBLIC __HID__)
+    # hidapi has two backends on Linux, one using the kernel's hidraw API and one using libusb.
+    # libusb obviously does not support Bluetooth HID devices, so use the hidraw backend. The
+    # libusb backend is the default, so hidraw needs to be selected explicitly at link time.
+    if(CMAKE_SYSTEM_NAME STREQUAL Linux)
+      target_link_libraries(mixxx-lib PRIVATE hidapi::hidraw)
+    else()
+      target_link_libraries(mixxx-lib PRIVATE hidapi::hidapi)
+    endif()
   endif ()
+  target_sources(
+    mixxx-lib
+    PRIVATE
+      src/controllers/hid/hidcontroller.cpp
+      src/controllers/hid/hidiothread.cpp
+      src/controllers/hid/hidioglobaloutputreportfifo.cpp
+      src/controllers/hid/hidiooutputreport.cpp
+      src/controllers/hid/hiddevice.cpp
+      src/controllers/hid/hidenumerator.cpp
+      src/controllers/hid/hidusagetables.cpp
+      src/controllers/hid/legacyhidcontrollermapping.cpp
+      src/controllers/hid/legacyhidcontrollermappingfilehandler.cpp
+  )
+  target_compile_definitions(mixxx-lib PUBLIC __HID__)
 endif()
 
 # USB Bulk controller support
