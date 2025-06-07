@@ -4627,7 +4627,8 @@ find_package(LibUSB)
 # USB HID controller support
 option(HID "USB HID controller support" ON)
 if(HID)
-  if(CMAKE_GENERATOR STREQUAL "Xcode") # if we are building for iOS (jb)
+  if(IOS) # if we are building for iOS (jb)
+    message(WARNING "HID devices support is only available for jailbroken/trollstore iPhones/iPads")
     # Check that variables exist
     if(NOT HIDAPI_INCLUDE_PATH)
       message(FATAL_ERROR "HIDAPI_INCLUDE_PATH not set")
