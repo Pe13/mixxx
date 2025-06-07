@@ -4637,8 +4637,8 @@ if(HID)
       message(FATAL_ERROR "HIDAPI_LIB_PATH not set")
     endif()
     # Include the headers and link the lib
-    target_include_directories(mixxx-lib PRIVATE HIDAPI_INCLUDE_PATH)
-    target_link_libraries(mixxx-lib PRIVATE HIDAPI_LIB_PATH)
+    target_include_directories(mixxx-lib PRIVATE ${HIDAPI_INCLUDE_PATH})
+    target_link_libraries(mixxx-lib PRIVATE ${HIDAPI_LIB_PATH})
   else ()
     # hidapi 0.14.0 is the first release, that contains bus type information
     find_package(hidapi 0.14.0)
