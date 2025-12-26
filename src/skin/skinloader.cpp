@@ -4,6 +4,7 @@
 #include <QDir>
 #include <QString>
 #include <QtDebug>
+#include <QGuiApplication>
 
 #include "control/controlproxy.h"
 #include "control/controlpushbutton.h"

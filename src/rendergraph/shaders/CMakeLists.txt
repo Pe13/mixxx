@@ -44,14 +44,50 @@ if(TARGET rendergraph_gl)
   else()
     # Use GLSL shaders extracted from the .qsb shader bundles using
     # generate_shaders_gl.pl
-    message(STATUS "Adding gl shaders to rendergraph_gl")
-    include(generated_shaders_gl.cmake)
+#    message(STATUS "Adding gl shaders to rendergraph_gl")
+#    include(generated_shaders_gl.cmake)
 
-    qt_add_resources(rendergraph_gl "shaders-gl"
-          PREFIX
-              /shaders/rendergraph
-          FILES
-              ${generated_shaders_gl}
-    )
-  endif()
+#    qt_add_resources(rendergraph_gl "shaders-gl"
+#          PREFIX
+#              /shaders/rendergraph
+#          FILES
+#              ${generated_shaders_gl}
+#    )
+      message(STATUS "Adding gl shaders to rendergraph_gl (Manual Generation)")
+      include(generated_shaders_gl.cmake)
+
+      # 1. Paths
+      set(shader_qrc_file "${CMAKE_CURRENT_BINARY_DIR}/rendergraph_shaders-gl.qrc")
+      set(shader_rcc_cpp "${CMAKE_CURRENT_BINARY_DIR}/qrc_rendergraph_shaders-gl.cpp")
+
+      # 2. Generate the .qrc file immediately during CMake configuration
+      set(qrc_content "<!DOCTYPE RCC><RCC version=\"1.0\">\n<qresource prefix=\"/shaders/rendergraph\">\n")
+      foreach(shader_file ${generated_shaders_gl})
+        # Note: Ensure paths are absolute for the .qrc file
+        get_filename_component(abs_shader_path "${shader_file}" ABSOLUTE)
+        string(APPEND qrc_content "    <file>${abs_shader_path}</file>\n")
+      endforeach()
+      string(APPEND qrc_content "</qresource>\n</RCC>\n")
+      file(WRITE "${shader_qrc_file}" "${qrc_content}")
+
+      # 3. Define the command to run RCC
+      add_custom_command(
+              OUTPUT "${shader_rcc_cpp}"
+              COMMAND Qt6::rcc -o "${shader_rcc_cpp}" "${shader_qrc_file}"
+              DEPENDS "${shader_qrc_file}" ${generated_shaders_gl}
+              COMMENT "RCC: Generating ${shader_rcc_cpp}"
+              VERBATIM
+      )
+
+      # 4. Create a dedicated target for the generation
+      # This prevents the "multiple targets" error by isolating the command
+      add_custom_target(generate_rendergraph_gl_cpp DEPENDS "${shader_rcc_cpp}")
+
+      # 5. Add the .cpp to the main target and link the dependency
+      target_sources(rendergraph_gl PRIVATE "${shader_rcc_cpp}")
+      add_dependencies(rendergraph_gl generate_rendergraph_gl_cpp)
+
+      # Ensure the directory is included if needed
+      target_include_directories(rendergraph_gl PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+    endif()
 endif()

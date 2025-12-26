@@ -2817,6 +2817,9 @@ if(ENGINEPRIME)
     message(STATUS "STATIC link existing system installation of libdjinterop")
     target_link_libraries(mixxx-lib PUBLIC DjInterop::DjInterop)
   else()
+    if (IOS)
+      message(FATAL_ERROR "DjInterop not found")
+    endif ()
     # On MacOS, Mixxx does not use system SQLite, so we will use libdjinterop's
     # embedded SQLite in such a case.
     if(APPLE AND NOT SQLite3_IS_STATIC)
@@ -3916,7 +3919,7 @@ if(APPLE OR WIN32)
     find_file(
       QT_TRANSLATION_FILE
       qt_de.qm
-      PATHS "${Qt6_DIR}/../../translations/Qt6"
+      PATHS "${Qt6_DIR}/../../../translations/"
       REQUIRED
       NO_DEFAULT_PATH
     )
@@ -4383,7 +4386,7 @@ endif()
 #
 # The HSS1394 library is only available on macOS, therefore this option is
 # forcibly set to OFF on all other platforms.
-if(WIN32 OR APPLE)
+if(WIN32 OR (APPLE AND NOT IOS))
   find_package(HSS1394)
 else()
   set(HSS1394 OFF)
@@ -4629,31 +4632,20 @@ option(HID "USB HID controller support" ON)
 if(HID)
   if(IOS) # if we are building for iOS (jb)
     message(WARNING "HID devices support is only available for jailbroken/trollstore iPhones/iPads")
-    # Check that variables exist
-    if(NOT HIDAPI_INCLUDE_PATH)
-      message(FATAL_ERROR "HIDAPI_INCLUDE_PATH not set")
-    endif()
-    if(NOT HIDAPI_LIB_PATH)
-      message(FATAL_ERROR "HIDAPI_LIB_PATH not set")
-    endif()
-    # Include the headers and link the lib
-    target_include_directories(mixxx-lib PRIVATE ${HIDAPI_INCLUDE_PATH})
-    target_link_libraries(mixxx-lib PRIVATE ${HIDAPI_LIB_PATH})
-  else ()
-    # hidapi 0.14.0 is the first release, that contains bus type information
-    find_package(hidapi 0.14.0)
-    if(NOT hidapi_FOUND)
-      message(FATAL_ERROR "hidapi >= 0.14.0 not found!")
-    endif()
-    # hidapi has two backends on Linux, one using the kernel's hidraw API and one using libusb.
-    # libusb obviously does not support Bluetooth HID devices, so use the hidraw backend. The
-    # libusb backend is the default, so hidraw needs to be selected explicitly at link time.
-    if(CMAKE_SYSTEM_NAME STREQUAL Linux)
-      target_link_libraries(mixxx-lib PRIVATE hidapi::hidraw)
-    else()
-      target_link_libraries(mixxx-lib PRIVATE hidapi::hidapi)
-    endif()
   endif ()
+  # hidapi 0.14.0 is the first release, that contains bus type information
+  find_package(hidapi 0.14.0)
+  if(NOT hidapi_FOUND)
+    message(FATAL_ERROR "hidapi >= 0.14.0 not found!")
+  endif()
+  # hidapi has two backends on Linux, one using the kernel's hidraw API and one using libusb.
+  # libusb obviously does not support Bluetooth HID devices, so use the hidraw backend. The
+  # libusb backend is the default, so hidraw needs to be selected explicitly at link time.
+  if(CMAKE_SYSTEM_NAME STREQUAL Linux)
+    target_link_libraries(mixxx-lib PRIVATE hidapi::hidraw)
+  else()
+    target_link_libraries(mixxx-lib PRIVATE hidapi::hidapi)
+  endif()
   target_sources(
     mixxx-lib
     PRIVATE
