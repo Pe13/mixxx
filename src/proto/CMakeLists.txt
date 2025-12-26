@@ -7,6 +7,27 @@ if(NOT Protobuf_FOUND)
   find_package(Protobuf MODULE REQUIRED)
 endif()
 
+# Fix protobuf using the wrong protoc executable when cross compiling if we
+# aren't using vcpkg
+if(CMAKE_CROSSCOMPILING AND NOT DEFINED VCPKG_TARGET_TRIPLET)
+  message("-- Adjusting protoc executable for cross-compiling")
+  unset(_PROTOBUF_PROTOC_EXECUTABLE)
+  set(cmake_find_root_path ${CMAKE_FIND_ROOT_PATH})
+  unset(CMAKE_FIND_ROOT_PATH)
+  find_program(_PROTOBUF_PROTOC_EXECUTABLE protoc NO_CMAKE_FIND_ROOT_PATH)
+  message("\t protoc executable path detected: ${_PROTOBUF_PROTOC_EXECUTABLE}")
+  if(NOT TARGET protobuf::protoc)
+    add_executable(protobuf::protoc IMPORTED)
+  endif()
+  set_target_properties(protobuf::protoc PROPERTIES
+          IMPORTED_LOCATION_RELEASE "${_PROTOBUF_PROTOC_EXECUTABLE}"
+          IMPORTED_LOCATION_DEBUG "${_PROTOBUF_PROTOC_EXECUTABLE}"
+          IMPORTED_LOCATION_RELWIHDEBINFO "${_PROTOBUF_PROTOC_EXECUTABLE}"
+          IMPORTED_LOCATION_NOCONFIG "${_PROTOBUF_PROTOC_EXECUTABLE}"
+  )
+  set(CMAKE_FIND_ROOT_PATH ${cmake_find_root_path})
+endif() # CMAKE_CROSSCOMPILING AND NOT DEFINED VCPKG_TARGET_TRIPLET
+
 add_library(mixxx-proto OBJECT)
 
 if(TARGET protobuf::libprotobuf-lite)
