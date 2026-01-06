@@ -112,6 +112,9 @@ if(SndFile_FOUND)
       endif()
 
       # The mpg123 dependency was introduced in libsndfile 1.1.0
+      if (NOT DEFINED SndFile_VERSION OR PC_SndFile_VERSION STREQUAL "")
+        message(FATAL_ERROR "Could not detect static SndFile version")
+      endif ()
       if(SndFile_VERSION VERSION_GREATER_EQUAL "1.1.0")
         find_package(mpg123 CONFIG)
         if(mpg123_FOUND)
