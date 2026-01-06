@@ -74,34 +74,80 @@ endif()
 # include directories.
 #
 macro(find_component component pkgconfig library header)
-  # use pkg-config to get the directories and then use these values
-  # in the FIND_PATH() and FIND_LIBRARY() calls
-  find_package(PkgConfig QUIET)
+  find_package(PkgConfig REQUIRED)
   if(PkgConfig_FOUND)
-    pkg_check_modules(PC_FFMPEG_${component} QUIET ${pkgconfig})
+    pkg_check_modules(PC_FFMPEG_${component} ${pkgconfig})
   endif()
 
   find_path(
     FFMPEG_${component}_INCLUDE_DIRS
     ${header}
     HINTS
-      ${PC_FFMPEG_${component}_INCLUDEDIR}
-      ${PC_FFMPEG_${component}_INCLUDE_DIRS}
-      ${PC_FFMPEG_INCLUDE_DIRS}
+    ${PC_FFMPEG_${component}_INCLUDEDIR}
+    ${PC_FFMPEG_${component}_INCLUDE_DIRS}
+    ${PC_FFMPEG_INCLUDE_DIRS}
     PATH_SUFFIXES ffmpeg
   )
 
+  # 1. Find the main component (e.g., libavcodec.a)
   find_library(
-    FFMPEG_${component}_LIBRARIES
-    NAMES ${PC_FFMPEG_${component}_LIBRARIES} ${library}
+    FFMPEG_${component}_LIBRARY
+    NAMES ${library}
     HINTS
-      ${PC_FFMPEG_${component}_LIBDIR}
-      ${PC_FFMPEG_${component}_LIBRARY_DIRS}
-      ${PC_FFMPEG_LIBRARY_DIRS}
+    ${PC_FFMPEG_${component}_LIBDIR}
+    ${PC_FFMPEG_${component}_LIBRARY_DIRS}
+    ${PC_FFMPEG_LIBRARY_DIRS}
   )
 
-  #message(STATUS ${FFMPEG_${component}_LIBRARIES})
-  #message(STATUS ${PC_FFMPEG_${component}_LIBRARIES})
+  if(FFMPEG_${component}_LIBRARY)
+    set(FFMPEG_${component}_FOUND TRUE)
+
+    # Initialize the library list with the main component absolute path
+    set(FFMPEG_${component}_LIBRARIES ${FFMPEG_${component}_LIBRARY})
+
+    # Define system libs that should NEVER be resolved to absolute paths
+    # (The linker will find these in the iOS SDK sysroot automatically)
+    set(FFMPEG_SKIP_RESOLVE_LIBS
+            System c m pthread dl c++ stdc++ objc iconv z resolv
+    )
+
+    # 2. Loop over dependencies provided by pkg-config
+    foreach(_dep ${PC_FFMPEG_${component}_LIBRARIES})
+      if(NOT _dep STREQUAL library)
+
+        # Check if this is a system library
+        if("${_dep}" IN_LIST FFMPEG_SKIP_RESOLVE_LIBS)
+          # Pass it through as a name (CMake will treat it as -lName)
+          list(APPEND FFMPEG_${component}_LIBRARIES ${_dep})
+        else()
+          # It's a custom lib (vpx, x264, etc.), resolve it to absolute path
+          # to avoid missing -L flag issues.
+          find_library(
+            FFMPEG_DEP_${_dep}_LIBRARY
+            NAMES ${_dep}
+            HINTS ${PC_FFMPEG_${component}_LIBRARY_DIRS} ${PC_FFMPEG_LIBRARY_DIRS}
+          )
+
+          if(FFMPEG_DEP_${_dep}_LIBRARY)
+            list(APPEND FFMPEG_${component}_LIBRARIES ${FFMPEG_DEP_${_dep}_LIBRARY})
+          else()
+            # If we can't find it (rare), fall back to the name
+            list(APPEND FFMPEG_${component}_LIBRARIES ${_dep})
+          endif()
+        endif()
+
+      endif()
+    endforeach()
+
+    # 3. Add Frameworks and other linker flags (e.g. -framework VideoToolbox)
+    if(PC_FFMPEG_${component}_LDFLAGS_OTHER)
+      list(APPEND FFMPEG_${component}_LIBRARIES ${PC_FFMPEG_${component}_LDFLAGS_OTHER})
+    endif()
+
+    message(STATUS "  - ${component} found: ${FFMPEG_${component}_LIBRARY}")
+  else()
+    message(STATUS "  - ${component} not found.")
+  endif()
 
   set(
     FFMPEG_${component}_DEFINITIONS
@@ -116,15 +162,9 @@ macro(find_component component pkgconfig library header)
     "The ${component} version number."
   )
 
-  if(FFMPEG_${component}_LIBRARIES AND FFMPEG_${component}_INCLUDE_DIRS)
-    message(STATUS "  - ${component} ${FFMPEG_${component}_VERSION} found.")
-    set(FFMPEG_${component}_FOUND TRUE)
-  else()
-    message(STATUS "  - ${component} not found.")
-  endif()
-
   mark_as_advanced(
     FFMPEG_${component}_INCLUDE_DIRS
+    FFMPEG_${component}_LIBRARY
     FFMPEG_${component}_LIBRARIES
     FFMPEG_${component}_DEFINITIONS
     FFMPEG_${component}_VERSION
@@ -146,7 +186,8 @@ set(FFMPEG_DEFINITIONS "")
 # Check if the required components were found and add their stuff to the FFMPEG_* vars.
 foreach(component ${FFMPEG_FIND_COMPONENTS})
   if(FFMPEG_${component}_FOUND)
-    #message(STATUS "Required component ${component} present.")
+    message(STATUS "Required component ${component} present.")
+    message(STATUS "${component} libraries: ${FFMPEG_${component}_LIBRARIES}")
     set(FFMPEG_LIBRARIES ${FFMPEG_LIBRARIES} ${FFMPEG_${component}_LIBRARIES})
     set(
       FFMPEG_DEFINITIONS
