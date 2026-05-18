@@ -46,4 +46,12 @@ if(serd_FOUND)
                 INTERFACE_INCLUDE_DIRECTORIES "${serd_INCLUDE_DIR}"
         )
     endif()
+    is_static_library(serd_IS_STATIC serd::serd)
+    if(serd_IS_STATIC AND PkgConfig_FOUND)
+        set_property(
+                TARGET serd::serd
+                APPEND
+                PROPERTY INTERFACE_LINK_LIBRARIES ${PC_serd_STATIC_LIBRARIES}
+        )
+    endif()
 endif()
