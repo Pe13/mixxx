@@ -57,7 +57,7 @@ if(lilv_FOUND)
       set_property(
         TARGET lilv::lilv
         APPEND
-        PROPERTY INTERFACE_LINK_LIBRARIES ${PC_lilv_STATIC_LINK_LIBRARIES}
+        PROPERTY INTERFACE_LINK_LIBRARIES ${PC_lilv_STATIC_LIBRARIES}
       )
     endif()
   endif()
