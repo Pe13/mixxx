@@ -3,46 +3,6 @@
 # Distributed under the GNU General Public Licence (GPL) version 2 or any later
 # later version. See the LICENSE file for details.
 
-#[=======================================================================[.rst:
-Findlilv
---------
-
-Finds the lilv library and lv2-dev package containing 'units' headers.
-
-Imported Targets
-^^^^^^^^^^^^^^^^
-
-This module provides the following imported targets, if found:
-
-``lilv::lilv``
-  The lilv library
-
-Result Variables
-^^^^^^^^^^^^^^^^
-
-This will define the following variables:
-
-``lilv_FOUND``
-  True if the system has the lilv library.
-``lilv_INCLUDE_DIRS``
-  Include directories needed to use lilv.
-``lilv_LIBRARIES``
-  Libraries needed to link to lilv.
-``lilv_DEFINITIONS``
-  Compile definitions needed to use lilv.
-
-Cache Variables
-^^^^^^^^^^^^^^^
-
-The following cache variables may also be set:
-
-``lilv_INCLUDE_DIR``
-  The directory containing ``lilv-0/lilv/lilv.h``.
-``lilv_LIBRARY``
-  The path to the lilv library.
-
-#]=======================================================================]
-
 include(IsStaticLibrary)
 
 find_package(PkgConfig QUIET)
@@ -93,12 +53,11 @@ if(lilv_FOUND)
         INTERFACE_INCLUDE_DIRECTORIES "${lilv_INCLUDE_DIR}"
     )
     is_static_library(lilv_IS_STATIC lilv::lilv)
-    if(lilv_IS_STATIC)
-      find_package(sord REQUIRED)
+    if(lilv_IS_STATIC AND PkgConfig_FOUND)
       set_property(
         TARGET lilv::lilv
         APPEND
-        PROPERTY INTERFACE_LINK_LIBRARIES sord::sord
+        PROPERTY INTERFACE_LINK_LIBRARIES ${PC_lilv_STATIC_LINK_LIBRARIES}
       )
     endif()
   endif()
