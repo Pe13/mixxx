@@ -3801,7 +3801,7 @@ if(APPLE)
         "-weak_framework CoreFoundation"
         "-weak_framework CoreImage"
         "-weak_framework CoreMedia"
-        "-weak_framework CoreMidi"
+        "-weak_framework CoreMIDI"
         "-weak_framework CoreServices"
         "-weak_framework CoreVideo"
         "-weak_framework IOSurface"
@@ -3809,7 +3809,7 @@ if(APPLE)
     )
     if(IOS)
       target_link_libraries(mixxx-lib PRIVATE "-weak_framework UIKit")
-    elseif()
+    else()
       target_link_libraries(
         mixxx-lib
         PRIVATE "-weak_framework AppKit" "-weak_framework AudioUnit"
