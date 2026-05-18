@@ -4518,7 +4518,7 @@ if(APPLE)
         "-weak_framework CoreFoundation"
         "-weak_framework CoreImage"
         "-weak_framework CoreMedia"
-        "-weak_framework CoreMidi"
+        "-weak_framework CoreMIDI"
         "-weak_framework CoreServices"
         "-weak_framework CoreVideo"
         "-weak_framework IOSurface"
