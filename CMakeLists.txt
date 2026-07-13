@@ -2488,10 +2488,15 @@ if(APPLE)
     )
     source_group(Resources FILES ${IOS_RESOURCES})
 
-    set(
-      QT_IOS_LAUNCH_SCREEN
-      "${CMAKE_CURRENT_SOURCE_DIR}/packaging/ios/LaunchScreen.storyboard"
-    )
+    if(CMAKE_GENERATOR STREQUAL "Xcode")
+      set(
+        QT_IOS_LAUNCH_SCREEN
+        "${CMAKE_CURRENT_SOURCE_DIR}/packaging/ios/LaunchScreen.storyboard"
+      )
+      set(IOS_INFO_PLIST_TEMPLATE "${CMAKE_CURRENT_SOURCE_DIR}/packaging/ios/Info.plist.in")
+    else()
+      set(IOS_INFO_PLIST_TEMPLATE "${CMAKE_CURRENT_SOURCE_DIR}/packaging/ios/Info.plist.linux.in")
+    endif()
 
     set_target_properties(
       mixxx
@@ -2500,7 +2505,7 @@ if(APPLE)
         OUTPUT_NAME "${IOS_BUNDLE_NAME}"
         MACOSX_BUNDLE_BUNDLE_NAME "${IOS_BUNDLE_NAME}"
         MACOSX_BUNDLE_INFO_PLIST
-          "${CMAKE_CURRENT_SOURCE_DIR}/packaging/ios/Info.plist.in"
+          "${IOS_INFO_PLIST_TEMPLATE}"
         MACOSX_BUNDLE_GUI_IDENTIFIER "${IOS_BUNDLE_IDENTIFIER}"
         XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME "AppIcon"
     )
