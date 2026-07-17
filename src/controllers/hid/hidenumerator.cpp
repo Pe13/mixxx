@@ -2,6 +2,10 @@
 
 #include <hidapi.h>
 
+#if defined(__APPLE__) && HID_API_VERSION >= HID_API_MAKE_VERSION(0, 12, 0)
+#include <hidapi_darwin.h>
+#endif
+
 #include "controllers/hid/hidcontroller.h"
 #include "controllers/hid/hiddenylist.h"
 #include "controllers/hid/hidusagetables.h"
@@ -90,42 +94,93 @@ HidEnumerator::~HidEnumerator() {
     hid_exit();
 }
 
+const char *hid_bus_name(hid_bus_type bus_type) {
+	static const char *const HidBusTypeName[] = {
+		"Unknown",
+		"USB",
+		"Bluetooth",
+		"I2C",
+		"SPI",
+	};
+
+	if ((int)bus_type < 0)
+		bus_type = HID_API_BUS_UNKNOWN;
+	if ((int)bus_type >= (int)(sizeof(HidBusTypeName) / sizeof(HidBusTypeName[0])))
+		bus_type = HID_API_BUS_UNKNOWN;
+
+	return HidBusTypeName[bus_type];
+}
+
+void print_device(struct hid_device_info *cur_dev) {
+	printf("Device Found\n  type: %04hx %04hx\n  path: %s\n  serial_number: %ls", cur_dev->vendor_id, cur_dev->product_id, cur_dev->path, cur_dev->serial_number);
+	printf("\n");
+	printf("  Manufacturer: %ls\n", cur_dev->manufacturer_string);
+	printf("  Product:      %ls\n", cur_dev->product_string);
+	printf("  Release:      %hx\n", cur_dev->release_number);
+	printf("  Interface:    %d\n",  cur_dev->interface_number);
+	printf("  Usage (page): 0x%hx (0x%hx)\n", cur_dev->usage, cur_dev->usage_page);
+	printf("  Bus type: %u (%s)\n", (unsigned)cur_dev->bus_type, hid_bus_name(cur_dev->bus_type));
+	printf("\n");
+}
+
+void print_devices_with_descriptor(struct hid_device_info *cur_dev) {
+	for (; cur_dev; cur_dev = cur_dev->next) {
+		print_device(cur_dev);
+	}
+}
+
 QList<Controller*> HidEnumerator::queryDevices() {
+
+    if (hid_init()) {
+        qWarning() << "Failed to initialize HIDAPI";
+        return m_devices;
+    }
+
+    #if defined(__APPLE__) && HID_API_VERSION >= HID_API_MAKE_VERSION(0, 12, 0)
+	// To work properly needs to be called before hid_open/hid_open_path after hid_init.
+	hid_darwin_set_open_exclusive(0);
+    #endif
+
     qInfo() << "Scanning USB HID devices";
 
     QStringList enumeratedDevices;
     hid_device_info* device_info_list = hid_enumerate(0x0, 0x0);
-    for (const auto* device_info = device_info_list;
-            device_info;
-            device_info = device_info->next) {
-        auto deviceInfo = mixxx::hid::DeviceInfo(*device_info);
-        // The hidraw backend of hidapi on Linux returns many duplicate hid_device_info's from hid_enumerate,
-        // so filter them out.
-        // https://github.com/libusb/hidapi/issues/298
-        if (enumeratedDevices.contains(deviceInfo.pathRaw())) {
-            qInfo() << "Duplicate HID device, excluding" << deviceInfo;
-            continue;
-        }
-        enumeratedDevices.append(QString(deviceInfo.pathRaw()));
+    print_devices_with_descriptor(device_info_list);
+    // for (const auto* device_info = device_info_list;
+    //         device_info;
+    //         device_info = device_info->next) {
+    //     auto deviceInfo = mixxx::hid::DeviceInfo(*device_info);
+    //     // The hidraw backend of hidapi on Linux returns many duplicate hid_device_info's from hid_enumerate,
+    //     // so filter them out.
+    //     // https://github.com/libusb/hidapi/issues/298
+    //     if (enumeratedDevices.contains(deviceInfo.pathRaw())) {
+    //         qInfo() << "Duplicate HID device, excluding" << deviceInfo;
+    //         continue;
+    //     }
+    //     if (device_info->bus_type != HID_API_BUS_USB) {
+    //         qInfo() << "Excluding non-USB HID device" << deviceInfo;
+    //         continue;
+    //     }
+    //     enumeratedDevices.append(QString(deviceInfo.pathRaw()));
 
-        if (!recognizeDevice(*device_info)) {
-            qInfo()
-                    << "Excluding HID device"
-                    << deviceInfo;
-            continue;
-        }
-        qInfo() << "Found HID device:"
-                << deviceInfo;
+    //     if (!recognizeDevice(*device_info)) {
+    //         qInfo()
+    //                 << "Excluding HID device"
+    //                 << deviceInfo;
+    //         continue;
+    //     }
+    //     qInfo() << "Found HID device:"
+    //             << deviceInfo;
 
-        if (!deviceInfo.isValid()) {
-            qWarning() << "HID device permissions problem or device error."
-                       << "Your account needs write access to HID controllers.";
-            continue;
-        }
+    //     if (!deviceInfo.isValid()) {
+    //         qWarning() << "HID device permissions problem or device error."
+    //                    << "Your account needs write access to HID controllers.";
+    //         continue;
+    //     }
 
-        HidController* newDevice = new HidController(std::move(deviceInfo));
-        m_devices.push_back(newDevice);
-    }
+    //     HidController* newDevice = new HidController(std::move(deviceInfo));
+    //     m_devices.push_back(newDevice);
+    // }
     hid_free_enumeration(device_info_list);
 
     return m_devices;
