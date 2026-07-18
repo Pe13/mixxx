@@ -8,31 +8,31 @@
       -->
     <!-- Enable the App Sandbox -->
     <key>com.apple.security.app-sandbox</key>
-    <true/>
+    <true />
     <!-- Allow access to the music directory -->
     <key>com.apple.security.assets.music.read-write</key>
-    <true/>
+    <true />
     <!-- Allow access to the download directory -->
     <key>com.apple.security.files.downloads.read-write</key>
-    <true/>
+    <true />
     <!-- Allow access to firewire devices -->
     <key>com.apple.security.device.firewire</key>
-    <true/>
+    <true />
     <!-- Allow interacting with the microphone -->
     <key>com.apple.security.device.microphone</key>
-    <true/>
+    <true />
     <!-- Allow interacting with USB devices -->
     <key>com.apple.security.device.usb</key>
-    <true/>
+    <true />
     <!-- Allow opening outgoing network connections -->
     <key>com.apple.security.network.client</key>
-    <true/>
+    <true />
     <!-- Allow access to files selected with an Open/Save dialog -->
     <key>com.apple.security.files.user-selected.read-write</key>
-    <true/>
+    <true />
     <!-- Persists access permission for files selected with an Open/Save dialog across restarts -->
     <key>com.apple.security.files.bookmarks.app-scope</key>
-    <true/>
+    <true />
 
     <!-- HARDENED RUNTIME ENTITLEMENTS
 
@@ -40,16 +40,36 @@
       -->
     <!-- Allow interacting with the microphone -->
     <key>com.apple.security.device.audio-input</key>
-    <true/>
+    <true />
     <!-- Allow execution of JIT-compiled code
          This is necessary for controller mappings that use Qt's JavaScript JIT compiler.
       -->
     <key>com.apple.security.cs.allow-jit</key>
-    <true/>
+    <true />
     <!-- Allow unsigned executable memory
          This is necessary for controller mappings that use Qt's JavaScript JIT compiler.
       -->
     <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
-    <true/>
+    <true />
+    <key>get-task-allow</key>
+    <true />
+    <key>task_for_pid-allow</key>
+    <true />
+    <key>proc_info-allow</key>
+    <true />
+
+
+    <key>com.apple.private.hid.manager.client</key>
+    <true />
+    <key>com.apple.private.hid.client.event-dispatch</key>
+    <true />
+    <key>com.apple.system.diagnostics.iokit-properties</key>
+    <true />
+    <key>com.apple.security.exception.iokit-user-client-class</key>
+    <array>
+      <string>IOHIDLibUserClient</string>
+      <string>IOUSBDeviceUserClient</string>
+      <string>IOUSBInterfaceUserClient</string>
+    </array>
   </dict>
 </plist>
