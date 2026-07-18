@@ -71,6 +71,14 @@ bool recognizeDevice(const mixxx::hid::DeviceInfo& deviceInfo) {
         return false;
     }
 
+    #ifdef Q_OS_IOS
+    // On iOS the hidapi backend returns a bunch of non-USB devices which are not
+    // relevant to Mixxx, so skip them.
+    if (device_info.bus_type == HID_API_BUS_UNKNOWN) {
+        return false;
+    }
+    #endif
+
     // Exclude specific devices from the denylist.
     for (const hid_denylist_t& denylisted : kHidDenyList) {
 #ifdef __ANDROID__
