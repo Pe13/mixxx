@@ -19,7 +19,7 @@
   <property name="windowTitle">
    <string>Controller Preferences</string>
   </property>
-  <layout class="QGridLayout" name="gridLayoutPage" rowstretch="0,0,0,0,1">
+  <layout class="QGridLayout" name="gridLayoutPage" rowstretch="0,0,0,0,0,1">
    <property name="sizeConstraint">
     <enum>QLayout::SetMaximumSize</enum>
    </property>
@@ -71,7 +71,7 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="0">
+   <item row="2" column="0">
     <widget class="QLabel" name="labelLoadMapping">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -90,7 +90,7 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="1">
+   <item row="2" column="1">
     <widget class="QComboBox" name="comboBoxMapping">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -100,7 +100,7 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="0">
+   <item row="3" column="0">
     <widget class="QGroupBox" name="groupBoxDeviceInfo">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
@@ -499,7 +499,7 @@
      </layout>
     </widget>
    </item>
-   <item row="2" column="1">
+   <item row="3" column="1">
     <widget class="QGroupBox" name="groupBoxMappingInfo">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
@@ -768,7 +768,7 @@
      </layout>
     </widget>
    </item>
-   <item row="3" column="0" colspan="2">
+   <item row="4" column="0" colspan="2">
     <widget class="QGroupBox" name="groupBoxWarning">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -836,7 +836,7 @@
      </layout>
     </widget>
    </item>
-   <item row="4" column="0" colspan="2">
+   <item row="5" column="0" colspan="2">
     <widget class="QTabWidget" name="controllerTabs">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
