@@ -63,5 +63,7 @@
     <true />
     <key>com.apple.private.hid.client.event-dispatch</key>
     <true />
+    <key>com.apple.system.diagnostics.iokit-properties</key>
+    <true />
   </dict>
 </plist>

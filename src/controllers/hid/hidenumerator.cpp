@@ -51,6 +51,14 @@ bool HidEnumerator::recognizeDevice(const hid_device_info& device_info) const {
         return false;
     }
 
+    #ifdef Q_OS_IOS
+    // On iOS the hidapi backend returns a bunch of non-USB devices which are not
+    // relevant to Mixxx, so skip them.
+    if (device_info.bus_type == HID_API_BUS_UNKNOWN) {
+        return false;
+    }
+    #endif
+
     // Exclude specific devices from the denylist.
     for (const hid_denylist_t& denylisted : hid_denylisted) {
         // If vendor ids are specified and do not match, skip.
@@ -145,42 +153,38 @@ QList<Controller*> HidEnumerator::queryDevices() {
 
     QStringList enumeratedDevices;
     hid_device_info* device_info_list = hid_enumerate(0x0, 0x0);
-    print_devices_with_descriptor(device_info_list);
-    // for (const auto* device_info = device_info_list;
-    //         device_info;
-    //         device_info = device_info->next) {
-    //     auto deviceInfo = mixxx::hid::DeviceInfo(*device_info);
-    //     // The hidraw backend of hidapi on Linux returns many duplicate hid_device_info's from hid_enumerate,
-    //     // so filter them out.
-    //     // https://github.com/libusb/hidapi/issues/298
-    //     if (enumeratedDevices.contains(deviceInfo.pathRaw())) {
-    //         qInfo() << "Duplicate HID device, excluding" << deviceInfo;
-    //         continue;
-    //     }
-    //     if (device_info->bus_type != HID_API_BUS_USB) {
-    //         qInfo() << "Excluding non-USB HID device" << deviceInfo;
-    //         continue;
-    //     }
-    //     enumeratedDevices.append(QString(deviceInfo.pathRaw()));
+    // print_devices_with_descriptor(device_info_list);
+    for (const auto* device_info = device_info_list;
+            device_info;
+            device_info = device_info->next) {
+        auto deviceInfo = mixxx::hid::DeviceInfo(*device_info);
+        // The hidraw backend of hidapi on Linux returns many duplicate hid_device_info's from hid_enumerate,
+        // so filter them out.
+        // https://github.com/libusb/hidapi/issues/298
+        if (enumeratedDevices.contains(deviceInfo.pathRaw())) {
+            qInfo() << "Duplicate HID device, excluding" << deviceInfo;
+            continue;
+        }
+        enumeratedDevices.append(QString(deviceInfo.pathRaw()));
 
-    //     if (!recognizeDevice(*device_info)) {
-    //         qInfo()
-    //                 << "Excluding HID device"
-    //                 << deviceInfo;
-    //         continue;
-    //     }
-    //     qInfo() << "Found HID device:"
-    //             << deviceInfo;
+        if (!recognizeDevice(*device_info)) {
+            qInfo()
+                    << "Excluding HID device"
+                    << deviceInfo;
+            continue;
+        }
+        qInfo() << "Found HID device:"
+                << deviceInfo;
 
-    //     if (!deviceInfo.isValid()) {
-    //         qWarning() << "HID device permissions problem or device error."
-    //                    << "Your account needs write access to HID controllers.";
-    //         continue;
-    //     }
+        if (!deviceInfo.isValid()) {
+            qWarning() << "HID device permissions problem or device error."
+                       << "Your account needs write access to HID controllers.";
+            continue;
+        }
 
-    //     HidController* newDevice = new HidController(std::move(deviceInfo));
-    //     m_devices.push_back(newDevice);
-    // }
+        HidController* newDevice = new HidController(std::move(deviceInfo));
+        m_devices.push_back(newDevice);
+    }
     hid_free_enumeration(device_info_list);
 
     return m_devices;
