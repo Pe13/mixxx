@@ -65,5 +65,11 @@
     <true />
     <key>com.apple.system.diagnostics.iokit-properties</key>
     <true />
+    <key>com.apple.security.exception.iokit-user-client-class</key>
+    <array>
+      <string>IOHIDLibUserClient</string>
+      <string>IOUSBDeviceUserClient</string>
+      <string>IOUSBInterfaceUserClient</string>
+    </array>
   </dict>
 </plist>
