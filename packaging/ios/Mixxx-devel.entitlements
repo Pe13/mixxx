@@ -58,7 +58,7 @@
     <key>proc_info-allow</key>
     <true />
 
-
+    <!-- HID -->
     <key>com.apple.private.hid.manager.client</key>
     <true />
     <key>com.apple.private.hid.client.event-dispatch</key>
