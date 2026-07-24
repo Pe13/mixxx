@@ -41,4 +41,9 @@ void initializeAVAudioSession() {
     }
 }
 
+int AVASOutChannelCount() {
+    auto session = [AVAudioSession sharedInstance];
+    return static_cast<int>([session maximumOutputNumberOfChannels]);
+}
+
 }; // namespace mixxx

@@ -6,6 +6,9 @@
 #include "audio/types.h"
 #include "soundio/sounddevice.h"
 #include "soundio/soundmanager.h"
+#ifdef Q_OS_IOS
+#include "soundio/soundmanagerios.h"
+#endif
 #include "soundio/soundmanagerutil.h"
 #include "util/cmdlineargs.h"
 #include "util/math.h"
@@ -240,6 +243,22 @@ bool SoundManagerConfig::readFromDisk() {
             }
             addInput(deviceIdFromFile, in);
         }
+#ifdef Q_OS_IOS
+        // On iOS since we always use iOS Audio even with a physical controller
+        // attached, we could end having 4 output channels for iOS Audio device
+        // saved in soundconfig.xml but only 2 available (if we launch the app
+        // without the controller connected), and this would cause the app to do
+        // not start at all.
+        int totalOutputChannels = 0;
+        for (auto it = m_outputs.constFind(deviceIdFromFile);
+                m_outputs.constEnd() != it && it.key() == deviceIdFromFile;
+                it++) {
+            totalOutputChannels += it.value().getChannelGroup().getChannelCount();
+        }
+        if (totalOutputChannels > mixxx::AVASOutChannelCount()) {
+            m_outputs.remove(deviceIdFromFile);
+        }
+#endif
     }
     return true;
 }
