@@ -255,7 +255,7 @@ function(fatal_error_missing_env)
   endif()
 endfunction()
 
-if(UNIX AND NOT APPLE)
+if(UNIX AND NOT (APPLE OR IOS))
   execute_process(
     COMMAND uname -r
     OUTPUT_VARIABLE UNAME_R
@@ -5256,19 +5256,20 @@ option(HID "USB HID controller support" ON)
 if(HID)
   if(IOS)
     message(WARNING "HID devices support is only available for jailbroken/trollstore iPhones/iPads")
-  endif ()
+  endif()
   # hidapi 0.14.0 is the first release, that contains bus type information
   find_package(hidapi 0.14.0)
   if(NOT hidapi_FOUND)
     message(FATAL_ERROR "hidapi >= 0.14.0 not found!")
   else()
-  # hidapi has two backends on Linux, one using the kernel's hidraw API and one using libusb.
-  # libusb obviously does not support Bluetooth HID devices, so use the hidraw backend. The
-  # libusb backend is the default, so hidraw needs to be selected explicitly at link time.
-  if(CMAKE_SYSTEM_NAME STREQUAL Linux)
-    target_link_libraries(mixxx-lib PRIVATE hidapi::hidraw)
-  else()
-    target_link_libraries(mixxx-lib PRIVATE hidapi::hidapi)
+    # hidapi has two backends on Linux, one using the kernel's hidraw API and one using libusb.
+    # libusb obviously does not support Bluetooth HID devices, so use the hidraw backend. The
+    # libusb backend is the default, so hidraw needs to be selected explicitly at link time.
+    if(CMAKE_SYSTEM_NAME STREQUAL Linux)
+      target_link_libraries(mixxx-lib PRIVATE hidapi::hidraw)
+    else()
+      target_link_libraries(mixxx-lib PRIVATE hidapi::hidapi)
+    endif()
   endif()
   target_sources(
     mixxx-lib

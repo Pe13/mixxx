@@ -396,7 +396,7 @@ void KeyboardEventFilter::registerMenuBarActionSetShortcut(QAction* pAction,
         return;
     }
     // TODO Allow clearing the shortcut so it can be used for something else ??
-    CfgkeyAndShortcut cfgKeyShortcut(cfgKey, defaultShortcut);
+    CfgkeyAndShortcut cfgKeyShortcut{cfgKey, defaultShortcut};
     m_menuBarActions.emplace(pAction, cfgKeyShortcut);
     const QKeySequence ks = safeKeySequence(m_pKbdConfig->getValue(cfgKey, defaultShortcut));
     pAction->setShortcut(ks);

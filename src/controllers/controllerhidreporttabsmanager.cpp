@@ -80,7 +80,12 @@ void ControllerHidReportTabsManager::createHidReportTab(QTabWidget* pParentRepor
     QMetaEnum metaEnum = QMetaEnum::fromType<hid::reportDescriptor::HidReportType>();
 
     for (const auto& reportInfo : reportDescriptor->getListOfReports()) {
+#ifdef Q_OS_IOS
+        const auto type = std::get<1>(reportInfo);
+        const auto reportId = std::get<2>(reportInfo);
+#else
         auto [index, type, reportId] = reportInfo;
+#endif
         if (type == reportType) {
             // Report is a fixed HID term and shouldn't be translated
             QString tabName = QStringLiteral("%1 Report 0x%2")

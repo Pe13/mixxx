@@ -74,7 +74,7 @@ bool recognizeDevice(const mixxx::hid::DeviceInfo& deviceInfo) {
     #ifdef Q_OS_IOS
     // On iOS the hidapi backend returns a bunch of non-USB devices which are not
     // relevant to Mixxx, so skip them.
-    if (device_info.bus_type == HID_API_BUS_UNKNOWN) {
+    if (deviceInfo.getPhysicalTransportProtocol() == PhysicalTransportProtocol::UNKNOWN) {
         return false;
     }
     #endif
